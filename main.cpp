@@ -478,10 +478,14 @@ int main() {
     string code = readFile("init.lua");
     Lexer lexer(code);
     string str = "";
+    vector<Token> unknownTokens;
     
     while (true) {
         Token token = lexer.nextToken();
         if (token.type == TokenType::EOF_TOKEN) break;
+        if (token.type == TokenType::UNKNOWN) {
+            unknownTokens.push_back(token);
+        }
         str += tokenTypeToString(token.type) + " ";
         cout << "Line " << token.line << ":" << token.column
              << " \tType: " << tokenTypeToString(token.type)
@@ -526,6 +530,16 @@ int main() {
         // Правильное вычисление частоты:
         double frequency = (static_cast<double>(pair.second) / total_count) * 100;
         cout << pair.first << ": " << pair.second << " | " << frequency << "%" << endl;
+    }
+
+    if (unknownTokens.empty()) {
+        cout << "No unknown tokens found." << endl;
+    } else {
+        cout << "\nUnknown tokens found:" << endl;
+        for (const Token& t : unknownTokens) {
+            cout << "Line " << t.line << ":" << t.column
+                 << " \tValue: '" << t.value << "'" << endl;
+        }
     }
     
     return 0;

@@ -474,8 +474,14 @@ string tokenTypeToString(TokenType type) {
     return typeNames.at(type);
 }
 
-int main() {
-    string code = readFile("init.lua");
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        cerr << "Usage: " << argv[0] << " <filename>" << endl;
+        return 1;
+    }
+    
+    string filename = argv[1];
+    string code = readFile(filename);
     Lexer lexer(code);
     string str = "";
     vector<Token> unknownTokens;
@@ -484,7 +490,10 @@ int main() {
         Token token = lexer.nextToken();
         if (token.type == TokenType::EOF_TOKEN) break;
         if (token.type == TokenType::UNKNOWN) {
-            unknownTokens.push_back(token);
+            cerr << "Error: Unknown token '" << token.value 
+                 << "' at line " << token.line 
+                 << ", column " << token.column << endl;
+            return 1;
         }
         str += tokenTypeToString(token.type) + " ";
         cout << "Line " << token.line << ":" << token.column
@@ -496,14 +505,11 @@ int main() {
     string word;
     map<string, int> word_count;
 
-    // Разбиваем строку на слова
     while (ss >> word) {
-        // Преобразуем слово в нижний регистр
         for (char &c : word) {
             c = tolower(c);
         }
 
-        // Удаляем знаки пунктуации
         string punctuation = "!?,.-";
         for (char c : punctuation) {
             size_t pos = word.find(c);
@@ -518,28 +524,15 @@ int main() {
         }
     }
 
-    // Вычисляем ОБЩЕЕ количество слов (сумму всех счетчиков)
     int total_count = 0;
     for (const auto &pair : word_count) {
         total_count += pair.second;
     }
 
-    // Выводим результат с правильным расчетом частоты
-    cout << fixed << setprecision(2); // Фиксируем вывод до 2 знаков после запятой
+    cout << fixed << setprecision(2);
     for (const auto &pair : word_count) {
-        // Правильное вычисление частоты:
         double frequency = (static_cast<double>(pair.second) / total_count) * 100;
         cout << pair.first << ": " << pair.second << " | " << frequency << "%" << endl;
-    }
-
-    if (unknownTokens.empty()) {
-        cout << "No unknown tokens found." << endl;
-    } else {
-        cout << "\nUnknown tokens found:" << endl;
-        for (const Token& t : unknownTokens) {
-            cout << "Line " << t.line << ":" << t.column
-                 << " \tValue: '" << t.value << "'" << endl;
-        }
     }
     
     return 0;
